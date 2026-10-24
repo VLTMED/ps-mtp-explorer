@@ -1,12 +1,14 @@
 # Cross-platform Python owns the compiler/link/package commands so flags do not drift.
-# Run: make -f Makefile.ps4 EXPERIMENTAL_USB=1 [package]
+# Run: make -f Makefile.ps4 [package]; see BUILD.md.
 PYTHON ?= python3
-ifneq ($(EXPERIMENTAL_USB),1)
-$(error Read docs/SOURCE_REVIEW.md and pass EXPERIMENTAL_USB=1 for the unverified USB ABI)
+ifeq ($(EXPERIMENTAL_USB),1)
+MODE := --experimental-usb
+else
+MODE := --production
 endif
 SDK_ARG := $(if $(OO_PS4_TOOLCHAIN),--sdk "$(OO_PS4_TOOLCHAIN)",)
 all:
-	$(PYTHON) tools/build_ps4.py --experimental-usb $(SDK_ARG)
+	$(PYTHON) tools/build_ps4.py $(MODE) $(SDK_ARG)
 package:
-	$(PYTHON) tools/build_ps4.py --experimental-usb $(SDK_ARG) --package
+	$(PYTHON) tools/build_ps4.py $(MODE) $(SDK_ARG) --package
 .PHONY: all package

@@ -1,4 +1,4 @@
-"""Build the existing diagnostic with an installed OpenOrbis SDK.
+"""Build PS MTP Explorer with an installed OpenOrbis SDK.
 
 No Sony SDK, kernel patch, device connection or deployment is performed.
 """
@@ -13,7 +13,6 @@ import shutil
 import struct
 import subprocess
 import sys
-from png_tools import explorer_icon
 from embed_font import embed
 from inspect_ps4 import converted_image, elf as inspect_elf, application_exit_imports
 from ps4_runtime import stage_runtime, runtime_inventory, PACKAGE_FILES
@@ -72,10 +71,13 @@ def main():
             raise SystemExit('Incomplete OpenOrbis SDK: missing ' + str(sdk / p))
     zig = ROOT / '.tools/ziglang' / ('zig.exe' if os.name == 'nt' else 'zig')
     llvm18 = ROOT/'.tools/llvm18/bin/clang.exe'
-    cc = shlex.split(args.cc) if args.cc else ([str(llvm18)] if llvm18.exists() else ([str(zig), 'cc'] if zig.exists() else ['clang']))
+    if args.cc:
+        cc = [str(Path(args.cc).resolve())] if Path(args.cc).is_file() else shlex.split(args.cc)
+    else:
+        cc = [str(llvm18)] if llvm18.exists() else ([str(zig), 'cc'] if zig.exists() else ['clang'])
     is_zig = Path(cc[0]).stem.lower() == 'zig'
     output = Path(args.output).resolve()
-    output.mkdir(exist_ok=True)
+    output.mkdir(parents=True, exist_ok=True)
     embed()
     source_inputs=(SOURCES+['tools/build_ps4.py','tools/ps4_runtime.py','tools/package_identity.py','distribution/LICENSES.txt','src/ps4/link.x','src/ps4/font_data.inc','src/ps4/reference_assets.inc','assets/reference/icon0.png','assets/reference/provenance.json','assets/fonts/NotoSans-Light.ttf','assets/fonts/OFL.txt']+[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'assets/icons').iterdir()) if p.is_file()]+[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'include').rglob('*.h'))]+
         [p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'src/ps4').glob('*.h'))]+[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'third_party/libjbc').iterdir()) if p.is_file() and p.suffix!='.c'])
@@ -129,7 +131,7 @@ def main():
         objects.append(obj)
     elf = output/'psmtp.elf'
     libs = [str(sdk/'lib/libc.a')] + ['-l'+x for x in ['kernel', 'SceAudioOut', 'SceVideoOut', 'ScePad', 'SceUserService', 'SceSysmodule', 'SceSystemService']]
-    standalone = args.ld or (str(llvm18.parent/'ld.lld.exe') if llvm18.exists() and not args.cc else None)
+    standalone = args.ld or (str(llvm18.parent/'ld.lld.exe') if llvm18.exists() and not args.cc else shutil.which('ld.lld'))
     if standalone or is_zig:
         linker = [standalone] if standalone else [cc[0], 'ld.lld']
         report['linker_version'] = run('linker version',linker+['--version']).strip()

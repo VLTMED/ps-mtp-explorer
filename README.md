@@ -18,6 +18,7 @@
 <p align="center">
   <a href="https://github.com/nueex/ps-mtp-explorer/releases/latest"><strong>Download PKG</strong></a> ·
   <a href="#getting-started">Getting started</a> ·
+  <a href="BUILD.md">Build from source</a> ·
   <a href="#install-pkg-from-phone-to-ps4">Install packages</a> ·
   <a href="#controller-guide">Controls</a> ·
   <a href="https://github.com/nueex/ps-mtp-explorer/issues">Report an issue</a>
@@ -114,6 +115,14 @@ For phone installations, leave enough internal space for **both the temporary PK
 | **Touchpad** | Refresh devices and the current view. |
 | **Left from the file area's left edge** | Enter the device sidebar. |
 
+## Build from source
+
+See [BUILD.md](BUILD.md) for the required tools, SDK setup, production PKG
+build commands, package validation, and optional CMake host library build.
+Application source, bundled artwork, fonts, and the libjbc integration are
+included in this repository; install the external compiler and OpenOrbis SDK
+as described in the guide.
+
 ## Common questions
 
 <details>
@@ -137,7 +146,7 @@ Phone package installation requires free internal storage for both the package a
 <details>
 <summary><strong>Where are downloads and source code?</strong></summary>
 
-The compiled application is distributed through GitHub Releases. This repository contains release documentation and assets; the application source is not published here. Required third-party notices and corresponding runtime materials accompany the release separately.
+The compiled application is distributed through GitHub Releases. The application source and build scripts are included in this repository; follow [BUILD.md](BUILD.md) to compile your own copy. Required third-party notices and corresponding runtime materials also accompany the release separately.
 </details>
 
 ## Feedback
