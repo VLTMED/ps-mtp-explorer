@@ -1,0 +1,7 @@
+Derived from user-supplied psmtpResource images. Rights to supplied artwork remain with its owners; no application MIT licensing of that artwork is asserted. Only isolated assets and thumbnail excerpts are extracted. Complete screenshots are not used as production UI backgrounds.
+
+As of 0.8.1, folder, document, device, Settings, Home, action and gamepad
+pictograms are authored geometric SVGs in assets/icons/, covered by the
+application's MIT license. Supplied wordmarks, launcher artwork and QA-only
+thumbnail excerpts remain subject to the original notice above. The PS4
+wordmark is preserved within the platform asset; its gamepad is replaced.

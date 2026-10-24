@@ -1,0 +1,44 @@
+libjbc by sleirsgoevy, OpenOrbis integration by bucanero.
+Pinned origin: https://github.com/bucanero/ps4-libjbc
+Commit: 835fe016ff0ae5dd89b9249f39cc0fe093fd07dd
+Unmodified input file hashes are in provenance.json.
+
+The upstream tree does not provide an explicit license file. This third-party
+code is not covered by the PSMTP MIT license. Attribution and corresponding
+sources are included for this local, personal homebrew preview. No public
+redistribution or upstream licensing permission is asserted by this project.
+
+PSMTP integration changes:
+- Only jailbreak.c and kernelrw.c are compiled; mounting utilities are unused.
+- Internal raw open/close symbols are prefixed, preserving libc error handling
+  for all ordinary application filesystem operations.
+- Raw syscall errors become negative values. Failed HEN kernel calls propagate.
+- Kernel call arguments are explicit, avoiding absent variadic argument reads.
+- GoldHEN-only kernel path; no Mira socket probing or kernel-pointer writes
+  through ordinary socket I/O. Kernel pointer/copy arithmetic is bounded.
+- Process traversal is limited to 8 restarts / 4096 nodes per attempt.
+- Null thread pointers and failed temporary root directory opens stop the call.
+- Prison reference increments/decrements reject integer wraparound.
+- Compile without stack protector, red zone, SSE/MMX or unwind tables; do not
+  enable runtime sanitizer instrumentation for the kernel callback objects.
+- Use SDK native types instead of duplicate platform typedefs. Test-only gates
+  replace assembly with a simulated syscall/kernel map; production code paths
+  retain the native assembly implementations.
+
+Current integration (2026-10-23):
+- The caller no longer excludes every firmware other than 11.00. It probes
+  the existing HEN syscall 11 and checks the current PID/context/credentials.
+- Before credential writes, the descriptor layout is checked against an OS
+  open of the current root; both prison reference counts must be nonzero and
+  below the overflow limit. These checks do not prove every kernel ABI.
+- The public header shares the implementation's credential/enum declarations.
+- As in 0.11.2 and v1.00, original Unix UID/GID fields are preserved while
+  Sony type/credentials/capabilities and global filesystem references are set.
+  Created files retain the original ownership. Configuration runs once before
+  application workers. The complete resulting profile and sandbox status are
+  verified; any unavailable or unverified setup stops application startup.
+
+No kernel patch, mount/format or global directory permission change is made.
+The old 11.00-only gate was a production compatibility defect. Removing it and
+passing host models do not establish compatibility with every HEN or future
+kernel. See docs/CROSS_FIRMWARE_ROOT_CAUSE.md for evidence and release limits.

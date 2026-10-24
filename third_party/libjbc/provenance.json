@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/bucanero/ps4-libjbc",
+  "commit": "835fe016ff0ae5dd89b9249f39cc0fe093fd07dd",
+  "files": {
+    "jailbreak.c": "7bef72ddb50fb930a17c483dba9f09696fecfe7001379772b500614a6b191e90",
+    "kernelrw.c": "8fa686c2d7657176b922ff02d47afc4c32c31d4bf98b35c434b3091cb4bf50d6",
+    "utils.c": "ff2776ccdc71b0e38dd0c28c61dfe1fa02e6dc1710c090203b80efcff4583bc7",
+    "defs.h": "04871a7d4013cf44a50e4758cc61f1060c2fc16884b1d7167cee1d504f8e2615",
+    "jailbreak.h": "d3e9293fbd28f7bb65270de9225cf99f3eac45467cf3ffd58b0c7be04a1c036e",
+    "kernelrw.h": "8be2a53078e4107896c83b7e12fdf8d8e18340b4e347cc2789a88e96d6d0fb06",
+    "utils.h": "8c46dafd339929c21ab8ebd1ff355187617cbd27177e28366dd6d11999170836",
+    "libjbc.h": "68b056cf4e3ce9b32c0ee6085e8dd234f0886723c3938542cf3483196a002d5d",
+    "README.md": "7801a755630533ab01148fe8f314416e4114725d4a426f18065d901326c475ad"
+  }
+}

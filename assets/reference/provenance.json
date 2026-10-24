@@ -1,0 +1,233 @@
+{
+  "source": "C:\\Users\\BADR-NUEEX\\Documents\\ChatGPT\\psmtpResource",
+  "references": {
+    "1792455114194.jpg": {
+      "size": [
+        2752,
+        1536
+      ],
+      "sha256": "22a1f3eed16f4dd6d6459f46a629e96827963acf60a1ba287c80748f067dabe3"
+    },
+    "1792495732103.jpg": {
+      "size": [
+        2728,
+        1536
+      ],
+      "sha256": "4d9df254bc71141818a2e4adac6a129b5b548b8f927a387775172e1caed8bc9d"
+    },
+    "1792496064015.jpg": {
+      "size": [
+        2752,
+        1536
+      ],
+      "sha256": "7811ffa78c7bdc390157f6e4baef539dc2cd7350db1077bd79b602720d73f175"
+    },
+    "app icon.jpg": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "e835a43d9348aa124a46010264e848469533920bfee912f5ff0a26681ca00048"
+    }
+  },
+  "assets": {
+    "wordmark": {
+      "source": "1792455114194.jpg",
+      "box_display_2048": [
+        68,
+        43,
+        675,
+        94
+      ],
+      "size": [
+        570,
+        48
+      ],
+      "mode": "white",
+      "sha256": "caef162d0d94c80daf663746955a30261192f6cbce87cbc2adedb355ed66fd92"
+    },
+    "platform": {
+      "source": "assets/icons/platform.svg",
+      "size": [
+        176,
+        39
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "f3d1e528885b49a511c2f0bda77595186ac406988efa360a7fba0f9176e08d11",
+      "sha256": "32f960b8b317254d65cd02e63b55a62645ae05f1589baedd3b93e13571a69793"
+    },
+    "folder": {
+      "source": "assets/icons/folder.svg",
+      "size": [
+        192,
+        156
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "b37c0bfb6f3e1506316f3174dc295480486256098abf9064643f8e9313019234",
+      "sha256": "7541a857f2979c70ddba70401407639d80c20056667f002edf136f61aa694c04"
+    },
+    "phone": {
+      "source": "assets/icons/phone.svg",
+      "size": [
+        34,
+        46
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "b12ba96c63a7874edba674deb203880c950aeda792bc0d08efb73840a7125c18",
+      "sha256": "8f9a8d946e64be08f77e770d562ec932c6fbcbe8124e7d53bee41c76c5a34377"
+    },
+    "usb": {
+      "source": "assets/icons/usb.svg",
+      "size": [
+        34,
+        44
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "d21b783e29def09b02163a1f1c88c582039daccc1bcc5580fc906bd097668d6a",
+      "sha256": "dae969afc408a95e4bf2cff4241d2d5dade9f43b499d1fe7b5973b8a94e9fc78"
+    },
+    "drive": {
+      "source": "assets/icons/drive.svg",
+      "size": [
+        40,
+        40
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "bb0798b93f3a590b2c75aec682f96743d53eb6a23a9211ccfca8d2368f97dd18",
+      "sha256": "8f6a63311a4c57ede7f03b9bba03b1c1990cd290483457996b17efdc5d5ef49c"
+    },
+    "settings": {
+      "source": "assets/icons/settings.svg",
+      "size": [
+        40,
+        40
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "0679779afd54a42f0a6db6b31bb78b1553b6b6161409d4d0cb6ef610f62eb486",
+      "sha256": "7c1dec749eb902fbac81a353d0ceebe0331f27ab6860bb3ae7130cdcbe4e011c"
+    },
+    "home": {
+      "source": "assets/icons/home.svg",
+      "size": [
+        34,
+        35
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "27b4370dadf7243c24c396aec21f85b32d8ad372a82ed6ee2391f75840d367b9",
+      "sha256": "f4a800f40907e444665ca155a863034f1ae3f8f0e27e330c1af1dbf13e6da8fe"
+    },
+    "copy": {
+      "source": "assets/icons/copy.svg",
+      "size": [
+        36,
+        39
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "df07d599b7e076c168183582eb8d49ea979eb8440c3bab1378e869f1e7e0a961",
+      "sha256": "9f6155c893ad5528a207698f6a5cf73a2ad085813dc351c3aa75dca6eb622623"
+    },
+    "move": {
+      "source": "assets/icons/move.svg",
+      "size": [
+        36,
+        38
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "d01aaba940c28627bf19d078d04073ef8730a3fdcae435cb700be947cc4da6ca",
+      "sha256": "1c1cba3b46bc3beda67ba4d60800d07f7c1b925e51af89e34697dc464c2b67ab"
+    },
+    "rename": {
+      "source": "assets/icons/rename.svg",
+      "size": [
+        36,
+        38
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "ab3f92b4a2f2d00dfed4fae0aa1c2fbec9e6af4de96089e77f0de53dd47c20cf",
+      "sha256": "71a95317b3f9b52039387de4ac091d51f88ab0ec8012a2cbb9203a3782501fa6"
+    },
+    "delete": {
+      "source": "assets/icons/delete.svg",
+      "size": [
+        36,
+        39
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "a721f0e2cd4830567bcfc2ef6acbd495f9c085b3bccf9e6c3085dcba27db3055",
+      "sha256": "272f4c162993eca08fd61740cc31206e296383012a42c5bc491f17e46155464d"
+    },
+    "info": {
+      "source": "assets/icons/info.svg",
+      "size": [
+        39,
+        40
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "1b30809f9131aaba8c0be00a394d673983256dbd45973fb35934517efbc96bc1",
+      "sha256": "f3f71f0e2daf284bba3cf1f13fe0c007a7127817fcdfb7f7cf5afd3c356d85a1"
+    },
+    "document": {
+      "source": "assets/icons/document.svg",
+      "size": [
+        81,
+        110
+      ],
+      "mode": "clean-vector",
+      "svg_sha256": "b0463604b0faa0a4006c39e674603d7af6b8d9820c394298f74a48218863513c",
+      "sha256": "cc86a1a51fc078b6ad2b9af99c77617b815a9a5fd500fc847b21dd24581c816c"
+    },
+    "thumb_pkg": {
+      "source": "1792455114194.jpg",
+      "box_display_2048": [
+        490,
+        754,
+        644,
+        885
+      ],
+      "size": [
+        178,
+        132
+      ],
+      "mode": "rgba",
+      "sha256": "e350d2e16463112ebc7de154e881ad67e039ef97c41a0d36984499fde5126c63"
+    },
+    "thumb_image": {
+      "source": "1792455114194.jpg",
+      "box_display_2048": [
+        1000,
+        754,
+        1226,
+        885
+      ],
+      "size": [
+        218,
+        132
+      ],
+      "mode": "rgba",
+      "sha256": "f6aad5cf7e477d8399092d1cbde9bb73a37619d13bd73ae1a8c50118f0769921"
+    },
+    "thumb_video": {
+      "source": "1792455114194.jpg",
+      "box_display_2048": [
+        1288,
+        754,
+        1516,
+        885
+      ],
+      "size": [
+        218,
+        132
+      ],
+      "mode": "rgba",
+      "sha256": "749f5e6a4b211c4cead7aee8e082ff7749fa6492c85f839ba95d290c83ac1f07"
+    },
+    "icon0": {
+      "source": "app icon.jpg",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "64148659f9a5f245940f022acfe57734de96e16b59bc2c66a594355ae12864f1"
+    }
+  }
+}
