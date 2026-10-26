@@ -8,6 +8,8 @@ PS MTP Explorer includes third-party components with their own terms. This file 
 | PS4 musl libc | Rich Felker and contributors; MIT and component notices. Statically linked runtime and startup code from the OpenOrbis SDK. |
 | stb_image / stb_truetype | Sean Barrett and contributors; MIT or public-domain options as stated in the bundled upstream headers. |
 | Noto Sans Light | Google and Noto Project contributors; SIL Open Font License 1.1. Font notices are retained. |
+| Noto Sans Arabic Regular | Google LLC and Noto Project contributors; SIL Open Font License 1.1. The font notice is retained in `assets/fonts/NotoSansArabic-OFL.txt`. |
+| FriBidi 1.0.13 | GNU FriBidi contributors; LGPL-2.1-or-later. Full source, generated Unicode tables, configuration and license are in `third_party/fribidi/`; the app links it statically for Arabic shaping and bidirectional text. |
 | libjbc | sleirsgoevy, with modifications by bucanero. The pinned bucanero/ps4-libjbc snapshot is `835fe016ff0ae5dd89b9249f39cc0fe093fd07dd`. That upstream snapshot does not contain a standalone license file; no MIT/GPL license is assigned to it here. |
 
 **libjbc - PS4 Jailbreak C library by sleirsgoevy, with modifications by bucanero. Provided and used with full author attribution for PS4 homebrew execution.**

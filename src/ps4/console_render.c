@@ -6,6 +6,7 @@
 #include "psmtp/copy_paths.h"
 #include "psmtp/version.h"
 #include "psmtp/keyboard.h"
+#include "psmtp/locale_ar.h"
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -28,6 +29,7 @@ static void chevron(int x,int y,int down,uint32_t c) {
 }
 static void text_lines(int x,int y,int size,int width,int lines,const char *s,uint32_t color) {
     char copy[512];size_t n=0;int line=0;if(!s) return;
+    s=psmtp_translate_text(s);
     while(*s && line<lines) {
         size_t next=1;unsigned char c=(unsigned char)*s;
         if((c&0xe0)==0xc0)next=2;else if((c&0xf0)==0xe0)next=3;else if((c&0xf8)==0xf0)next=4;
@@ -41,7 +43,7 @@ static void text_lines(int x,int y,int size,int width,int lines,const char *s,ui
 static void control_hint(int x,int y,int px,int width,const char *s,uint32_t color){
     static const char *const words[]={"Cross","Circle","Triangle","Square","D-pad","L1","R1","L2","R2","L3","R3","Touchpad","Options","X"};
     static const int kinds[]={UI_BTN_CROSS,UI_BTN_CIRCLE,UI_BTN_TRIANGLE,UI_BTN_SQUARE,UI_BTN_DPAD,UI_BTN_L1,UI_BTN_R1,UI_BTN_L2,UI_BTN_R2,UI_BTN_L3,UI_BTN_R3,UI_BTN_TOUCH,UI_BTN_OPTIONS,UI_BTN_CROSS};
-    int start=x;size_t at=0,plain=0;if(!s)return;
+    int start=x;size_t at=0,plain=0;if(!s)return;s=psmtp_translate_text(s);
     while(s[at]){unsigned i;int found=-1;size_t n=0;
         for(i=0;i<sizeof(words)/sizeof(words[0]);++i){size_t z=strlen(words[i]);if((!at || !((s[at-1]>='A' && s[at-1]<='Z') || (s[at-1]>='a' && s[at-1]<='z'))) && !strncmp(s+at,words[i],z) && !((s[at+z]>='A' && s[at+z]<='Z') || (s[at+z]>='a' && s[at+z]<='z') || (s[at+z]>='0' && s[at+z]<='9'))){found=(int)i;n=z;break;}}
         if(found>=0){char text[512];size_t length=at-plain;if(length>=sizeof(text))length=sizeof(text)-1;memcpy(text,s+plain,length);text[length]=0;ui_text(x,y,px,width-(x-start),text,color);x+=psmtp_font_width(text,px);if(x-start+px+5>width)return;ui_button(kinds[found],x,y+2,px+2,color);x+=px+7;at+=n;plain=at;}else ++at;
@@ -60,10 +62,11 @@ static void footer(int progress,const char *status) {
 }
 static void header(void) {
     char clock_text[48],release[128];time_t now;struct tm *clock;
-    snprintf(release,sizeof(release),"v%s",panel && panel->display_version?panel->display_version:PSMTP_VERSION);
+    snprintf(release,sizeof(release),psmtp_translate_text("v%s"),panel && panel->display_version?panel->display_version:PSMTP_VERSION);
     ui_art(UI_WORDMARK,64,43,570,48,0);ui_text(651,49,31,350,release,MUTED);ui_text(651+psmtp_font_width(release,31)+10,54,25,160,"by nueex",MUTED);ui_art(UI_PLATFORM,1514,48,176,39,0);
     if(panel && panel->clock_text) snprintf(clock_text,sizeof(clock_text),"%s",panel->clock_text);
     else {now=time(NULL);clock=localtime(&now);if(clock) {strftime(clock_text,sizeof(clock_text),"%I:%M %p",clock);if(clock_text[0]=='0') memmove(clock_text,clock_text+1,strlen(clock_text));}else strcpy(clock_text,"--:--");}
+    {char *am=strstr(clock_text,"AM"),*pm=strstr(clock_text,"PM");if(am)strcpy(am,"ص");else if(pm)strcpy(pm,"م");}
     ui_text(1737,47,28,170,clock_text,WHITE);
     if(panel && panel->clipboard_label) ui_text(1020,54,23,450,panel->clipboard_label,WHITE);
 }
@@ -96,7 +99,7 @@ static void toolbar(void) {
     ui_box(panel && panel->list_view?1106:1033,154,55,52,3,RGB(30,29,33),RGB(47,44,49),1);
     ui_rect(1049,168,10,10,WHITE);ui_rect(1063,168,10,10,WHITE);ui_rect(1049,182,10,10,WHITE);ui_rect(1063,182,10,10,WHITE);
     {int i;for(i=0;i<3;++i) {ui_rect(1120,168+i*10,4,4,WHITE);ui_rect(1130,168+i*10,17,3,WHITE);}}
-    {char label[64];snprintf(label,sizeof(label),"Sort: %s",psmtp_ui_sort_label(panel?panel->sort_mode:0));ui_text(1193,162,22,240,label,WHITE);}chevron(1425,176,1,WHITE);
+    {char label[64];snprintf(label,sizeof(label),psmtp_translate_text("Sort: %s"),psmtp_translate_text(psmtp_ui_sort_label(panel?panel->sort_mode:0)));ui_text(1193,162,22,240,label,WHITE);}chevron(1425,176,1,WHITE);
     if(panel && panel->toolbar_focus){int focus=panel->toolbar_focus;ui_box(focus==1?1033:focus==2?1106:1180,150,focus==3?266:55,60,5,0,WHITE,3);}
 }
 static size_t item_count(void) {return panel && panel->display_items?panel->display_count:phone?phone->count:disk?disk->count:0;}
@@ -125,7 +128,7 @@ static void grid_tile(size_t position,int selected,const psmtp_ui_item *item) {
     ui_box(x,y,248,height,selected?7:3,RGB(34,31,32),selected?RGB(214,203,206):RGB(44,41,43),selected?3:1);
     if(selected) ui_box(x+4,y+4,240,height-8,3,RGB(36,32,33),0,0);
     file_art(item,x,y+(item->folder?22:17),248,120);ui_center(x+14,y+(item->folder?135:151),26,220,item->name,WHITE);
-    if(item->folder) {if(item->items_known) snprintf(meta,sizeof(meta),"%zu items",item->items);else strcpy(meta,"Folder");}
+    if(item->folder) {if(item->items_known) snprintf(meta,sizeof(meta),psmtp_translate_text("%zu items"),item->items);else strcpy(meta,"Folder");}
     else if(item->unknown) strcpy(meta,"Size unavailable");else bytes_text(meta,sizeof(meta),item->bytes);
     ui_text(x+20,y+(item->folder?175:193),22,214,meta,MUTED);
 }
@@ -138,7 +141,8 @@ static void modified_text(const char *value,char *date,size_t date_cap,char *clo
     static const char *months[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};int year,month,day,hour,minute;
     strcpy(date,"Unavailable");clock[0]=0;
     if(!value || sscanf(value,"%4d%2d%2dT%2d%2d",&year,&month,&day,&hour,&minute)!=5 || month<1 || month>12 || day<1 || day>31 || hour<0 || hour>23 || minute<0 || minute>59) return;
-    snprintf(date,date_cap,"%s %d, %d",months[month-1],day,year);snprintf(clock,clock_cap,"%d:%02d %s",hour%12?hour%12:12,minute,hour>=12?"PM":"AM");
+    snprintf(date,date_cap,psmtp_translate_text("%d %s %d"),day,psmtp_translate_text(months[month-1]),year);
+    snprintf(clock,clock_cap,psmtp_translate_text("%d:%02d %s"),hour%12?hour%12:12,minute,psmtp_translate_text(hour>=12?"PM":"AM"));
 }
 static void details(const psmtp_ui_item *input) {
     psmtp_ui_item value=*input;const psmtp_ui_item *item=&value;const psmtp_metadata *m=current_metadata;
@@ -155,8 +159,8 @@ static void details(const psmtp_ui_item *input) {
     if(m){char extra[128];int y=804+offset;
         if(m->title[0]){ui_text(1535,y,23,342,m->title,WHITE);y+=34;}
         if(m->title_id[0]){snprintf(extra,sizeof(extra),"%s  %s",m->title_id,m->version);ui_text(1535,y,21,342,extra,MUTED);y+=32;}
-        if(m->width && m->height){snprintf(extra,sizeof(extra),"%u x %u%s%s",m->width,m->height,m->codec[0]?"  ":"",m->codec);ui_text(1535,y,23,342,extra,WHITE);y+=32;}
-        if(m->duration_ms){snprintf(extra,sizeof(extra),"Duration  %llu:%02llu",(unsigned long long)(m->duration_ms/60000),(unsigned long long)(m->duration_ms/1000%60));ui_text(1535,y,23,342,extra,WHITE);}
+        if(m->width && m->height){snprintf(extra,sizeof(extra),psmtp_translate_text("%u x %u%s%s"),m->width,m->height,m->codec[0]?"  ":"",m->codec);ui_text(1535,y,23,342,extra,WHITE);y+=32;}
+        if(m->duration_ms){snprintf(extra,sizeof(extra),psmtp_translate_text("Duration  %llu:%02llu"),(unsigned long long)(m->duration_ms/60000),(unsigned long long)(m->duration_ms/1000%60));ui_text(1535,y,23,342,extra,WHITE);}
     }
 }
 static void explorer(const char *status) {
@@ -191,7 +195,7 @@ static void transfer_overlay(void) {
         ui_rect(0,951,1920,129,RGB(21,18,19));footer(1,"Integrity check in progress.");return;
     }
     ui_box(650,527,563,22,5,RGB(57,53,61),RGB(66,61,69),1);if(panel->view==PSMTP_VIEW_INSTALL_PROGRESS && !panel->install_known && !panel->total)ui_box(650+(int)((panel->elapsed_ms/10)%440),527,120,22,4,RGB(202,198,208),0,0);else if(p) ui_box(650,527,(int)(563*p/100),22,4,RGB(202,198,208),0,0);if(panel->view==PSMTP_VIEW_INSTALL_PROGRESS && !panel->install_known && !panel->total)strcpy(pct,"...");else snprintf(pct,sizeof(pct),"%u%%",p);ui_text(1241,521,25,74,pct,WHITE);
-    if(panel->phase==7 || panel->phase==6) snprintf(progress,sizeof(progress),"%" PRIu64 " of %" PRIu64 " items",panel->done,panel->total);else {bytes_text(size,sizeof(size),panel->done);bytes_text(total,sizeof(total),panel->total);snprintf(progress,sizeof(progress),"%s of %s",size,total);}
+    if(panel->phase==7 || panel->phase==6) snprintf(progress,sizeof(progress),psmtp_translate_text("%llu of %llu items"),(unsigned long long)panel->done,(unsigned long long)panel->total);else {bytes_text(size,sizeof(size),panel->done);bytes_text(total,sizeof(total),panel->total);snprintf(progress,sizeof(progress),psmtp_translate_text("%s of %s"),size,total);}
     if(panel->phase==MTP_COPY_RECEIVE && panel->view!=PSMTP_VIEW_INSTALL_PROGRESS){char rate[128];psmtp_transfer_text(&panel->transfer,rate,sizeof(rate));ui_text(650,612,22,480,rate,MUTED);}
     if(panel->view==PSMTP_VIEW_INSTALL_PROGRESS && !panel->total)snprintf(progress,sizeof(progress),"%s",panel->install_known?"System installer progress":"Waiting for system progress...");
     ui_text(650,565,24,630,progress,MUTED);ui_box(1140,612,144,50,7,RGB(49,45,50),RGB(77,70,80),2);ui_center(1140,620,26,144,"Cancel",WHITE);
@@ -213,7 +217,7 @@ static void install_confirmation(void){
 static void review_overlay(int operation) {
     char size[64],counts[160];const char *title=operation?(panel->action==2?"Delete selected items":panel->action==1?"Move selected items":"Copy selected items"):"Copy selected items";
     ui_shadow(535,288,850,506,12);ui_box(535,288,850,506,12,RGB(29,27,28),RGB(60,54,61),2);ui_text(577,318,31,766,title,WHITE);text_lines(577,376,27,766,2,panel->name,WHITE);
-    bytes_text(size,sizeof(size),panel->source_total);snprintf(counts,sizeof(counts),"%zu files  /  %zu folders  /  %s",panel->files,panel->folders,size);ui_text(577,467,24,766,counts,MUTED);
+    bytes_text(size,sizeof(size),panel->source_total);snprintf(counts,sizeof(counts),psmtp_translate_text("%zu files  /  %zu folders  /  %s"),panel->files,panel->folders,size);ui_text(577,467,24,766,counts,MUTED);
     if(operation && panel->action==2) {ui_text(577,531,26,766,"These items will be deleted permanently.",WHITE);ui_text(577,578,23,766,"There is no recycle bin. Verify your selection before continuing.",MUTED);}
     else {ui_text(577,521,22,766,"Destination",MUTED);text_lines(577,556,25,766,2,panel->destination?panel->destination:PSMTP_COPY_DIRECTORY,WHITE);ui_text(577,639,21,766,panel->action==1?"Source removal follows successful integrity verification.":"Existing files are preserved. Every copied file is verified.",MUTED);}
     ui_box(1020,708,300,51,7,RGB(204,198,207),WHITE,1);ui_button(UI_BTN_CROSS,1052,718,28,RGB(34,29,34));ui_center(1094,716,26,200,operation && panel->action==2?"Delete":panel->action==1?"Move":"Copy",RGB(34,29,34));control_hint(582,718,25,400,"Circle  Cancel",WHITE);
@@ -222,7 +226,7 @@ static void review_overlay(int operation) {
 static void notice_overlay(void) {
     ui_shadow(535,340,850,360,12);ui_box(535,340,850,360,12,PANEL,LINE,2);
     ui_text(577,378,31,766,panel->notice_title?panel->notice_title:"Transfer unavailable",WHITE);
-    {char text[512],*line,*next;int row=0;snprintf(text,sizeof(text),"%s",panel->notice_text?panel->notice_text:"Please check the destination and try again.");
+    {char text[512],*line,*next;int row=0;snprintf(text,sizeof(text),"%s",psmtp_translate_text(panel->notice_text?panel->notice_text:"Please check the destination and try again."));
     line=text;do{next=strchr(line,'\n');if(next)*next++=0;ui_text(577,447+row*38,25,766,line,MUTED);line=next;}while(line && ++row<3);}
     ui_box(1120,610,210,52,7,RGB(49,45,50),LINE,2);ui_button(UI_BTN_CROSS,1140,621,27,WHITE);ui_center(1178,618,25,130,"OK",WHITE);
     ui_rect(0,951,1920,129,RGB(21,18,19));controller(78,986,0,"OK");controller(244,986,1,"Back");
@@ -235,7 +239,7 @@ static void properties_overlay(void) {
     modified_text(item.modified,date,sizeof(date),clock,sizeof(clock));ui_text(580,512,25,200,"Modified",MUTED);ui_text(830,512,25,510,date,WHITE);ui_text(1100,512,25,240,clock,WHITE);
     {const psmtp_metadata *m=metadata_at(item_selected());char extra[160];
     if(m && m->title[0]){ui_text(580,558,22,190,"Title",MUTED);ui_text(830,558,22,510,m->title,WHITE);ui_text(580,594,22,190,"Content ID",MUTED);ui_text(830,594,19,510,m->content_id,WHITE);}
-    else if(m && m->width && m->height){snprintf(extra,sizeof(extra),"%u x %u  %s",m->width,m->height,m->codec);ui_text(580,558,22,190,"Dimensions",MUTED);ui_text(830,558,22,510,extra,WHITE);if(m->duration_ms){snprintf(extra,sizeof(extra),"%llu:%02llu",(unsigned long long)(m->duration_ms/60000),(unsigned long long)(m->duration_ms/1000%60));ui_text(580,594,22,190,"Duration",MUTED);ui_text(830,594,22,510,extra,WHITE);}}
+    else if(m && m->width && m->height){snprintf(extra,sizeof(extra),psmtp_translate_text("%u x %u  %s"),m->width,m->height,m->codec);ui_text(580,558,22,190,"Dimensions",MUTED);ui_text(830,558,22,510,extra,WHITE);if(m->duration_ms){snprintf(extra,sizeof(extra),"%llu:%02llu",(unsigned long long)(m->duration_ms/60000),(unsigned long long)(m->duration_ms/1000%60));ui_text(580,594,22,190,"Duration",MUTED);ui_text(830,594,22,510,extra,WHITE);}}
     }
     ui_text(580,642,22,758,"Full path",MUTED);text_lines(580,678,20,758,3,panel && panel->path?panel->path:disk?disk->path:"/",WHITE);
     ui_box(1140,800,180,49,7,RGB(49,45,50),RGB(77,70,80),2);ui_center(1140,806,26,180,"Close",WHITE);
@@ -243,14 +247,15 @@ static void properties_overlay(void) {
 }
 static void rename_overlay(void) {
     size_t i;ui_shadow(360,220,1200,650,12);ui_box(360,220,1200,650,12,PANEL,LINE,2);ui_text(405,248,32,1110,panel->action==4?"New Folder":"Rename",WHITE);
+    ui_text(1370,252,20,140,panel->keyboard_arabic?"العربية":"English",MUTED);
     ui_box(405,312,1110,62,5,RGB(18,16,18),WHITE,2);ui_text(423,322,28,1074,panel->edit_name?panel->edit_name:"",WHITE);
-    for(i=0;i<PSMTP_KEY_COUNT;++i){int x,y,w,h,selected=panel->index==i,action=psmtp_key_action(i);uint32_t c=selected?RGB(30,26,30):WHITE;char text[2]={psmtp_key_character(i,panel->keyboard_shift),0};psmtp_key_rect(i,&x,&y,&w,&h);
+    for(i=0;i<PSMTP_KEY_COUNT;++i){int x,y,w,h,selected=panel->index==i,action=psmtp_key_action(i);uint32_t c=selected?RGB(30,26,30):WHITE;const char *text=psmtp_key_text(i,panel->keyboard_shift,panel->keyboard_arabic);psmtp_key_rect(i,&x,&y,&w,&h);
         ui_box(x,y,w,h,5,selected?RGB(218,213,219):RGB(44,40,45),selected?WHITE:LINE,2);
         if(action==PSMTP_KEY_BACKSPACE){int cx=x+w/2;ui_line(cx-21,y+28,cx-9,y+14,2,c,255);ui_line(cx-9,y+14,cx+23,y+14,2,c,255);ui_line(cx+23,y+14,cx+23,y+42,2,c,255);ui_line(cx+23,y+42,cx-9,y+42,2,c,255);ui_line(cx-9,y+42,cx-21,y+28,2,c,255);ui_button(UI_BTN_CROSS,cx-6,y+18,20,c);}
         else if(action==PSMTP_KEY_SHIFT){ui_line(x+w/2,y+12,x+w/2-13,y+27,2,c,255);ui_line(x+w/2,y+12,x+w/2+13,y+27,2,c,255);ui_line(x+w/2,y+12,x+w/2,y+43,3,c,255);}
         else ui_center(x,y+8,27,w,action==PSMTP_KEY_CLEAR?"Clear":action==PSMTP_KEY_SAVE?(panel->action==4?"Create":"Save"):i==42?"Space":text,c);
     }
-    control_hint(408,774,22,1110,panel->action==4?"Cross Add   Square Erase   Triangle Shift   L1 Clear   R1 Create   Circle Cancel":"Cross Add   Square Erase   Triangle Shift   L1 Clear   R1 Save   Circle Cancel",WHITE);
+    control_hint(408,774,22,1110,panel->action==4?"Cross Add   Square Erase   Triangle Shift   L1 Clear   R1 Create   L2 Language   Circle Cancel":"Cross Add   Square Erase   Triangle Shift   L1 Clear   R1 Save   L2 Language   Circle Cancel",WHITE);
     if(panel->edit_error)ui_text(408,821,21,1110,panel->edit_error,RGB(244,173,55));
 }
 static void sort_overlay(void){
@@ -270,7 +275,7 @@ static void settings_page(const char *status){
 }
 #endif
 static void loading_overlay(void) {
-    char count[96];ui_shadow(612,398,712,286,13);ui_box(612,398,712,286,13,RGB(29,27,28),RGB(56,51,56),2);ui_text(650,432,29,630,"Reading folder...",WHITE);snprintf(count,sizeof(count),"%" PRIu64 " of %" PRIu64 " items",panel->done,panel->total);ui_text(650,493,26,630,count,MUTED);
+    char count[96];ui_shadow(612,398,712,286,13);ui_box(612,398,712,286,13,RGB(29,27,28),RGB(56,51,56),2);ui_text(650,432,29,630,"Reading folder...",WHITE);snprintf(count,sizeof(count),psmtp_translate_text("%llu of %llu items"),(unsigned long long)panel->done,(unsigned long long)panel->total);ui_text(650,493,26,630,count,MUTED);
     ui_box(650,549,630,8,4,RGB(57,53,61),0,0);if(panel->total) ui_box(650,549,(int)(630*percent(panel->done,panel->total)/100),8,4,RGB(202,198,208),0,0);control_hint(650,607,24,630,"Circle  Cancel",WHITE);
     ui_rect(0,951,1920,129,RGB(21,18,19));controller(78,986,1,"Cancel");
 }

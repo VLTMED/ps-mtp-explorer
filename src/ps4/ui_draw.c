@@ -7,6 +7,7 @@
 #define W 1920
 #define H 1080
 static uint32_t *pixels,*background;
+static int rtl_x(int x,int w) { return W-x-w; }
 typedef struct {int kind,a,b,c,d,w,h;uint32_t fill,stroke,*data;uint64_t used;} surface;
 static surface surfaces[64];static uint64_t surface_clock;static size_t surface_bytes;
 static surface *cached(int kind,int a,int b,int c,int d,uint32_t fill,uint32_t stroke,int w,int h) {
@@ -25,10 +26,12 @@ static uint32_t mix(uint32_t dst,uint32_t src,unsigned a) {
 static void put(int x,int y,uint32_t color,unsigned alpha) {if(x>=0 && x<W && y>=0 && y<H && alpha) pixels[y*W+x]=alpha>=255?color:mix(pixels[y*W+x],color,alpha);}
 static void blit(int x,int y,const uint32_t *data,int w,int h) {int row,col;for(row=0;row<h;++row){if(y+row<0 || y+row>=H)continue;for(col=0;col<w;++col){uint32_t c=data[row*w+col];unsigned a=c>>24;if(x+col<0 || x+col>=W || !a)continue;if(a==255)pixels[(y+row)*W+x+col]=c;else pixels[(y+row)*W+x+col]=mix(pixels[(y+row)*W+x+col],c,a);}}}
 void ui_rect(int x,int y,int w,int h,uint32_t c) {
+    x=rtl_x(x,w);
     int row,col,x0=x<0?0:x,y0=y<0?0:y,x1=x+w>W?W:x+w,y1=y+h>H?H:y+h;
     for(row=y0;row<y1;++row) for(col=x0;col<x1;++col) pixels[row*W+col]=c;
 }
 void ui_alpha(int x,int y,int w,int h,uint32_t c,unsigned a) {
+    x=rtl_x(x,w);
     int row,col,x0=x<0?0:x,y0=y<0?0:y,x1=x+w>W?W:x+w,y1=y+h>H?H:y+h;
     for(row=y0;row<y1;++row) for(col=x0;col<x1;++col) put(col,row,c,a);
 }
@@ -38,6 +41,7 @@ static float box_distance(float x,float y,int w,int h,int r) {
     return sqrtf(ax*ax+ay*ay)+(inside<0?inside:0)-r;
 }
 void ui_box(int x,int y,int w,int h,int r,uint32_t fill,uint32_t stroke,int border) {
+    x=rtl_x(x,w);
     surface *s=cached(1,w,h,r,border,fill,stroke,w,h);
     if(s && s->used){blit(x,y,s->data,w,h);return;}
     int i,j;for(j=0;j<h;++j) for(i=0;i<w;++i) {
@@ -47,7 +51,9 @@ void ui_box(int x,int y,int w,int h,int r,uint32_t fill,uint32_t stroke,int bord
     if(s){s->used=++surface_clock;blit(x,y,s->data,w,h);}
 }
 void ui_line(int x0,int y0,int x1,int y1,int width,uint32_t c,unsigned a) {
-    int x,y,minx=(x0<x1?x0:x1)-width,maxx=(x0>x1?x0:x1)+width,miny=(y0<y1?y0:y1)-width,maxy=(y0>y1?y0:y1)+width;
+    int x,y,minx,maxx,miny,maxy;
+    x0=W-1-x0;x1=W-1-x1;
+    minx=(x0<x1?x0:x1)-width;maxx=(x0>x1?x0:x1)+width;miny=(y0<y1?y0:y1)-width;maxy=(y0>y1?y0:y1)+width;
     float vx=(float)(x1-x0),vy=(float)(y1-y0),length=vx*vx+vy*vy;
     for(y=miny;y<=maxy;++y) for(x=minx;x<=maxx;++x) {
         float t=length?((x-x0)*vx+(y-y0)*vy)/length:0,dx,dy,coverage;if(t<0)t=0;if(t>1)t=1;
@@ -56,13 +62,14 @@ void ui_line(int x0,int y0,int x1,int y1,int width,uint32_t c,unsigned a) {
     }
 }
 void ui_ring(int cx,int cy,int r,int width,uint32_t c,unsigned a) {
-    int x,y;for(y=-r-2;y<=r+2;++y) for(x=-r-2;x<=r+2;++x) {
+    int x,y;cx=W-1-cx;for(y=-r-2;y<=r+2;++y) for(x=-r-2;x<=r+2;++x) {
         float coverage=width*0.5f+0.5f-fabsf(sqrtf((float)(x*x+y*y))-r);
         if(coverage>0) put(cx+x,cy+y,c,coverage>=1?a:(unsigned)(a*coverage));
     }
 }
 void ui_shadow(int x,int y,int w,int h,int r) {
-    int xx,yy,i;surface *s=cached(2,w,h,r,0,0,0,w+24,h+24);
+    int xx,yy,i;surface *s;
+    x=rtl_x(x,w);s=cached(2,w,h,r,0,0,0,w+24,h+24);
     if(s && s->used){blit(x-12,y-9,s->data,w+24,h+24);return;}
     for(yy=-12;yy<h+12;++yy) for(xx=-12;xx<w+12;++xx) {
         unsigned alpha=0;if(xx>=0 && xx<w && yy>=0 && yy<h)continue;
@@ -73,7 +80,7 @@ void ui_shadow(int x,int y,int w,int h,int r) {
 }
 void ui_art(int id,int x,int y,int w,int h,uint32_t tint) {
     static const psmtp_ui_asset *const assets[]={&ui_wordmark,&ui_platform,&ui_folder,&ui_phone,&ui_usb,&ui_drive,&ui_settings,&ui_home,&ui_copy,&ui_move,&ui_rename,&ui_delete,&ui_info,&ui_document,&ui_thumb_pkg,&ui_thumb_image,&ui_thumb_video};
-    const psmtp_ui_asset *im;int xx,yy,fit;if(id<0 || id>UI_THUMB_VIDEO || w<=0 || h<=0) return;im=assets[id];
+    const psmtp_ui_asset *im;int xx,yy,fit;if(id<0 || id>UI_THUMB_VIDEO || w<=0 || h<=0) return;x=rtl_x(x,w);im=assets[id];
 
     if(id==UI_WORDMARK || id>=UI_THUMB_PKG) {
         for(yy=0;yy<h;++yy) for(xx=0;xx<w;++xx) {
@@ -104,7 +111,7 @@ void ui_art(int id,int x,int y,int w,int h,uint32_t tint) {
     }
     if(s){s->used=++surface_clock;blit(x,y,s->data,w,h);}}
 }
-void ui_text(int x,int y,int px,int width,const char *s,uint32_t c) {psmtp_font_draw(pixels,x,y,px,width,s?s:"",c);}
+void ui_text(int x,int y,int px,int width,const char *s,uint32_t c) {x=rtl_x(x,width);psmtp_font_draw(pixels,x,y,px,width,s?s:"",c);}
 void ui_center(int x,int y,int px,int width,const char *s,uint32_t c) {int text=psmtp_font_width(s,px);ui_text(x+(text<width?(width-text)/2:0),y,px,width,s,c);}
 void ui_backdrop(void) {
     int x,y;uint32_t *save=pixels;
@@ -147,7 +154,7 @@ void ui_button(int kind,int x,int y,int size,uint32_t color){
     }
 }
 void ui_image(const uint32_t *data,unsigned width,unsigned height,int x,int y,int w,int h) {
-    int row,col,tw,th;if(!data || !width || !height || w<=0 || h<=0)return;
+    int row,col,tw,th;if(!data || !width || !height || w<=0 || h<=0)return;x=rtl_x(x,w);
     tw=w;th=(int)((uint64_t)height*w/width);if(th>h){th=h;tw=(int)((uint64_t)width*h/height);}if(!tw || !th)return;x+=(w-tw)/2;y+=(h-th)/2;
     for(row=0;row<th;++row)for(col=0;col<tw;++col){uint32_t c=data[(size_t)((uint64_t)row*height/th)*width+(unsigned)((uint64_t)col*width/tw)];put(x+col,y+row,c,c>>24);}
 }

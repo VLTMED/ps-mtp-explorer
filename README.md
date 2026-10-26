@@ -41,6 +41,7 @@
 | **Grid, list & details** | Switch views, inspect full paths and file properties, and see supported image previews, package artwork and available media metadata. |
 | **Seven sorting choices** | Name A–Z/Z–A, size smallest/largest, modified newest/oldest, or file type. Folders stay grouped first. |
 | **Designed for the controller** | Browse and manage your files from the controller, with an on-screen keyboard for folder and file names. |
+| **Arabic interface** | Arabic menus, status and error messages, RTL layout, a bundled Arabic font with shaping, and an on-screen Arabic/English filename keyboard. |
 
 <p align="center">
   <img src="assets/explorer.png" alt="PS MTP Explorer grid view with connected storage, folders and file details" width="960"><br>
@@ -65,6 +66,8 @@ PS MTP Explorer uses standard USB data transfers and is electrically safe under 
 ### Install and open
 
 Download **[PS-MTP-Explorer-1.01.pkg](https://github.com/nueex/ps-mtp-explorer/releases/download/v1.01/PS-MTP-Explorer-1.01.pkg)** and install it using GoldHEN's package installer. Version **1.01** updates the existing `NUEX00001` app; its PS4 `APP_VER` and `VERSION` metadata are **01.01**. The previous [1.00 release](https://github.com/nueex/ps-mtp-explorer/releases/tag/v1.00) remains available.
+
+The Arabic source build in this branch is version **1.02** (SFO **01.02**) and keeps the same `NUEX00001` application identity, so its PKG is an update rather than a side-by-side install. The download link above remains the published 1.01 release until a maintainer publishes a new release.
 
 Then:
 
@@ -113,7 +116,7 @@ For phone installations, leave enough internal space for **both the temporary PK
 | **L1 / R1** | Previous / next page. |
 | **L2 / R2** | Previous / next available phone storage area. |
 | **Touchpad** | Refresh devices and the current view. |
-| **Left from the file area's left edge** | Enter the device sidebar. |
+| **Right from the file area's right edge** | Enter the device sidebar in the Arabic RTL interface. |
 
 ## Build from source
 
@@ -122,6 +125,9 @@ build commands, package validation, and optional CMake host library build.
 Application source, bundled artwork, fonts, and the libjbc integration are
 included in this repository; install the external compiler and OpenOrbis SDK
 as described in the guide.
+The Arabic UI strings are maintained in `locales/ar.json`; the build embeds
+that catalog and the bundled Noto Sans Arabic font and compiles FriBidi for
+right-to-left ordering and Arabic joining.
 
 ## Common questions
 
@@ -161,7 +167,7 @@ If PS MTP Explorer makes managing your PS4 easier, you can support development o
 
 ## Credits & third-party notices
 
-Created by **nueex**. Built with [OpenOrbis](https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain), musl, stb and Noto Sans.
+Created by **nueex**. Built with [OpenOrbis](https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain), musl, stb, Noto Sans, Noto Sans Arabic and FriBidi.
 
 **libjbc - PS4 Jailbreak C library by sleirsgoevy, with modifications by bucanero. Provided and used with full author attribution for PS4 homebrew execution.**
 

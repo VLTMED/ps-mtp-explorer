@@ -1,6 +1,12 @@
 #include "psmtp/transfer_meter.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef PSMTP_ARABIC_UI
+#include "psmtp/locale_ar.h"
+#define TRANSFER_TEXT(text) psmtp_translate_text(text)
+#else
+#define TRANSFER_TEXT(text) (text)
+#endif
 void psmtp_transfer_measure(psmtp_transfer_meter *m,int phase,uint64_t done,uint64_t total,uint64_t now){
     unsigned i;uint64_t elapsed,bytes;double seconds;
     if(done>total)done=total;
@@ -25,11 +31,11 @@ void psmtp_transfer_measure(psmtp_transfer_meter *m,int phase,uint64_t done,uint
 }
 void psmtp_transfer_text(const psmtp_transfer_meter *m,char *out,unsigned capacity){
     char eta[48];uint64_t s=m->remaining_seconds;
-    if(!m->ready){snprintf(out,capacity,"Calculating speed...");return;}
-    if(m->last_done>=m->total)snprintf(eta,sizeof(eta),"Transfer complete");
-    else if(!m->eta_known)snprintf(eta,sizeof(eta),m->bytes_per_second>0?"Estimating time...":"Waiting for data...");
-    else if(s>=3600)snprintf(eta,sizeof(eta),"%lluh %02llum to transfer",(unsigned long long)(s/3600),(unsigned long long)(s/60%60));
-    else if(s>=60)snprintf(eta,sizeof(eta),"%llum %02llus to transfer",(unsigned long long)(s/60),(unsigned long long)(s%60));
-    else snprintf(eta,sizeof(eta),"%llus to transfer",(unsigned long long)s);
-    snprintf(out,capacity,"%.1f MB/s  -  %s",m->bytes_per_second/1000000.0,eta);
+    if(!m->ready){snprintf(out,capacity,"%s",TRANSFER_TEXT("Calculating speed..."));return;}
+    if(m->last_done>=m->total)snprintf(eta,sizeof(eta),"%s",TRANSFER_TEXT("Transfer complete"));
+    else if(!m->eta_known)snprintf(eta,sizeof(eta),"%s",m->bytes_per_second>0?TRANSFER_TEXT("Estimating time..."):TRANSFER_TEXT("Waiting for data..."));
+    else if(s>=3600)snprintf(eta,sizeof(eta),TRANSFER_TEXT("%lluh %02llum to transfer"),(unsigned long long)(s/3600),(unsigned long long)(s/60%60));
+    else if(s>=60)snprintf(eta,sizeof(eta),TRANSFER_TEXT("%llum %02llus to transfer"),(unsigned long long)(s/60),(unsigned long long)(s%60));
+    else snprintf(eta,sizeof(eta),TRANSFER_TEXT("%llus to transfer"),(unsigned long long)s);
+    snprintf(out,capacity,TRANSFER_TEXT("%.1f MB/s  -  %s"),m->bytes_per_second/1000000.0,eta);
 }

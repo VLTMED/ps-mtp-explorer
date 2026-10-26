@@ -14,6 +14,7 @@ import struct
 import subprocess
 import sys
 from embed_font import embed
+from embed_locale import embed as embed_locale
 from inspect_ps4 import converted_image, elf as inspect_elf, application_exit_imports
 from ps4_runtime import stage_runtime, runtime_inventory, PACKAGE_FILES
 from package_identity import validate_identity, validate_package_identity
@@ -21,9 +22,16 @@ from package_identity import validate_identity, validate_package_identity
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ['src/pkg.c','src/transfer_meter.c','src/ps4/package_install.c','src/ps4/storage_space.c','src/keyboard.c','src/metadata.c','src/ps4/preview.c','src/name.c','src/device_sound.c','src/usb_label.c','src/ps4/device_audio.c','src/device_watch.c','src/locations.c','src/ui_format.c','src/copy_plan.c','src/ps4/ui_font.c','src/ps4/ui_draw.c','src/ps4/file_store.c','src/ps4/file_ops.c','src/copy.c', 'src/sha256.c', 'src/mtp.c', 'src/usb_select.c', 'src/navigator.c', 'src/browser.c', 'src/diagnostic.c',
            'src/diag_log.c', 'src/usb_module.c', 'src/ps4/copy_file.c', 'src/ps4/usb_ps4.c', 'src/ps4/console_render.c', 'src/ps4/screen.c', 'src/ps4/exit.c', 'src/ps4/main.c','src/ps4/process_access.c','third_party/libjbc/jailbreak.c','third_party/libjbc/kernelrw.c']
+FRIBIDI_SOURCES = ['fribidi.c','fribidi-arabic.c','fribidi-bidi.c','fribidi-bidi-types.c',
+    'fribidi-char-sets.c','fribidi-char-sets-cap-rtl.c','fribidi-char-sets-cp1255.c',
+    'fribidi-char-sets-cp1256.c','fribidi-char-sets-iso8859-6.c','fribidi-char-sets-iso8859-8.c',
+    'fribidi-char-sets-utf8.c','fribidi-deprecated.c','fribidi-joining.c',
+    'fribidi-joining-types.c','fribidi-mirroring.c','fribidi-brackets.c','fribidi-run.c','fribidi-shape.c']
+SOURCES += ['src/ps4/locale_ar.c'] + ['third_party/fribidi/lib/'+p for p in FRIBIDI_SOURCES]
 CONTENT_ID = 'IV0000-NUEX00001_00-NUEEXMTP00000000'
 TITLE_ID = 'NUEX00001'
-RELEASE = '1.01'
+TITLE = 'مستكشف PS MTP'
+RELEASE = '1.02'
 
 def package_version():
     version = re.search(r'#define PSMTP_VERSION "([^"]+)"', (ROOT/'include/psmtp/version.h').read_text()).group(1)
@@ -79,12 +87,17 @@ def main():
     output = Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     embed()
+    embed_locale()
     source_inputs=(SOURCES+['tools/build_ps4.py','tools/ps4_runtime.py','tools/package_identity.py','distribution/LICENSES.txt','src/ps4/link.x','src/ps4/font_data.inc','src/ps4/reference_assets.inc','assets/reference/icon0.png','assets/reference/provenance.json','assets/fonts/NotoSans-Light.ttf','assets/fonts/OFL.txt']+[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'assets/icons').iterdir()) if p.is_file()]+[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'include').rglob('*.h'))]+
         [p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'src/ps4').glob('*.h'))]+[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'third_party/libjbc').iterdir()) if p.is_file() and p.suffix!='.c'])
+    source_inputs += ['tools/embed_font.py','tools/embed_locale.py','locales/ar.json','src/ps4/locale_ar_data.inc',
+        'assets/fonts/NotoSansArabic-Regular.ttf','assets/fonts/NotoSansArabic-OFL.txt'] + [p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'third_party/fribidi').rglob('*')) if p.is_file()]
     report = {'release': RELEASE, 'app_version': app_version, 'production': args.production, 'diagnostic_logging': not args.production, 'experimental': not args.production, 'hardware_tested': False, 'usb_tests_enabled': True,
               'phone_upload': True, 'upload_max_file_bytes': (2**64-1)//8, 'large_phone_upload': True, 'large_upload_requires_partial64_and_size64': True, 'large_upload_sentinel_header': True, 'large_transfer_hardware_tested': False, 'pretransfer_space_check': True, 'verification_status_only': True, 'layered_system_chimes': True, 'diagnostic_render_reentry_guard': True, 'render_timing_committed_before_logging': True, 'fullscreen_settings': True, 'sort_picker': True, 'qwerty_keyboard': True, 'controller_glyphs': True, 'audio_system_main_stereo': True, 'copy_reserve_bytes': 0, 'copy_destination_prefill': False, 'copy_source_content_passes': 1, 'copy_destination_hash_passes': 0,
               'live_transfer_speed':True,'recent_window_eta':True,'direct_pkg_install':True,'phone_pkg_staging':True,'installer_loopback_only':False,'installer_network_required':False,'installer_transport':'native-storage','saved_pkg_retained':False,'phone_install_copy_cleanup_after_success':True,'phone_install_copy_cleanup_after_failure':True,'persistent_paste_slot':True,'non_pkg_properties_only':True,'mtp_session_reopen_recovery':True,'quick_copy_verification':True,'live_directory_refresh':True,'new_folder':True,'settings_disabled':True,'installer_source_preserved':True,
               'rename': True, 'background_metadata_previews': True, 'controller_toolbar': True, 'cached_cpu_rendering': True,
+              'arabic_localization': True, 'arabic_keyboard': True, 'right_to_left_layout': True,
+              'arabic_font': 'Noto Sans Arabic Regular OFL 1.1', 'bidi_shaping': 'FriBidi 1.0.13 static',
               'device_connection_chimes': True, 'discovery_phone_names': True, 'automatic_device_watch': True, 'device_poll_ms': 100, 'retained_phone_session': True, 'loading_delay_ms': 180,
               'process_filesystem_access': True, 'access_profile': 'HEN syscall 11 / runtime process checks / original Unix identity with libjbc Sony capacity credentials', 'capacity_unknown_policy': 'checked-io', 'cross_firmware_hardware_verified': False, 'libjbc_commit': '835fe016ff0ae5dd89b9249f39cc0fe093fd07dd', 'mtp_tests_enabled': True, 'interactive_browser_enabled': True, 'verified_copy_enabled': True, 'copy_private_directory': True, 'copy_descriptor_checks': True, 'copy_absolute_open': True, 'clipboard_operations': True, 'phone_to_native_paste': True, 'native_copy_move_delete': True, 'phone_delete': True, 'direct_usb_probe': True, 'device_drawer': True, 'mounted_usb_browsing': True, 'internal_browsing': True, 'modern_explorer_ui': True, 'outline_font': 'Noto Sans Light OFL', 'recursive_folder_copy': True, 'folder_shared_reserve': False, 'copy_staging_directory': '/data/psmtp/copies', 'copy_readable_output': True, 'copy_native_stat_abi': True, 'copy_allocated_capacity': False, 'usbd_review_sha256':'9cc9d4b4021b66dab5c09ada373cdd042d68e23b5de1ca515d50b82abec28bff', 'sdk': str(sdk),
               'sdk_files_sha256': {p: sha(sdk/p) for p in ['include/orbis/Usbd.h', 'include/orbis/_types/libusb.h',
@@ -111,7 +124,7 @@ def main():
     target = 'x86_64-freestanding' if is_zig else 'x86_64-pc-freebsd12-elf'
     report['compiler_version'] = run('compiler version',cc+['--version']).strip()
     report['compiler_sha256'] = sha(cc[0]) if Path(cc[0]).is_file() else None
-    flags = ['-target', target, '-std=c99', '-D_POSIX_C_SOURCE=200809L', '-DPSMTP_EXPERIMENTAL_PS4_USB=1',
+    flags = ['-target', target, '-std=c99', '-D_POSIX_C_SOURCE=200809L', '-DPSMTP_EXPERIMENTAL_PS4_USB=1','-DPSMTP_ARABIC_UI=1',
              '-nostdinc', '-I'+str(ROOT/'include'), '-isystem', str(sdk/'include'),
              '-isystem', str(sdk/'include/orbis/_types'), '-isystem', str(sdk/'include/stb'), '-fPIC', '-funwind-tables',
              '-fshort-wchar', '-fno-stack-protector', '-Wall', '-Wextra', '-Werror', '-O2']
@@ -127,6 +140,9 @@ def main():
         compile_flags=flags
         if source.startswith('third_party/libjbc/'):
             compile_flags=flags+['-std=gnu99','-ffreestanding','-mno-red-zone','-mno-sse','-mno-sse2','-mno-mmx','-fno-asynchronous-unwind-tables','-fno-unwind-tables','-Wno-unused-parameter']
+        elif source.startswith('third_party/fribidi/') or source=='src/ps4/locale_ar.c':
+            compile_flags=flags+['-DHAVE_CONFIG_H','-Wno-unused-parameter','-Wno-enum-conversion','-I'+str(ROOT/'third_party/fribidi'),
+                '-I'+str(ROOT/'third_party/fribidi/lib')]
         run('compile '+source, cc+compile_flags+['-c', ROOT/source, '-o', obj])
         objects.append(obj)
     elf = output/'psmtp.elf'
@@ -183,7 +199,7 @@ def package(sdk, output, run, report):
         'APP_TYPE': ('Integer',4,'1'), 'APP_VER': ('Utf8',8,package_version()),
         'ATTRIBUTE': ('Integer',4,'0'), 'CATEGORY': ('Utf8',4,'gd'),
         'CONTENT_ID': ('Utf8',48,CONTENT_ID), 'DOWNLOAD_DATA_SIZE': ('Integer',4,'0'),
-        'SYSTEM_VER': ('Integer',4,'0'), 'TITLE': ('Utf8',128,'PS MTP Explorer'),
+        'SYSTEM_VER': ('Integer',4,'0'), 'TITLE': ('Utf8',128,TITLE),
         'TITLE_ID': ('Utf8',12,TITLE_ID), 'VERSION': ('Utf8',8,package_version())}
     for key,(kind,cap,value) in fields.items():
         run('SFO '+key,[pkgtool,'sfo_setentry',sfo,key,'--type',kind,'--maxsize',str(cap),'--value',value])

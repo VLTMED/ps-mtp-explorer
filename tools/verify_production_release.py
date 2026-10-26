@@ -4,7 +4,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from build_ps4 import read_sfo, package_version, RELEASE, TITLE_ID, CONTENT_ID
+from build_ps4 import read_sfo, package_version, RELEASE, TITLE_ID, CONTENT_ID, TITLE
 from inspect_ps4 import headers_and_sections
 from ps4_runtime import PACKAGE_FILES
 from package_identity import validate_package_identity
@@ -25,7 +25,7 @@ names = {p.relative_to(payload).as_posix() for p in payload.rglob('*') if p.is_f
 assert names == set(PACKAGE_FILES) | {'sce_sys/keystone'}, names
 sfo = read_sfo(payload/'sce_sys/param.sfo')
 assert sfo['TITLE_ID'] == TITLE_ID
-assert sfo['CONTENT_ID'] == CONTENT_ID and sfo['TITLE'] == 'PS MTP Explorer'
+assert sfo['CONTENT_ID'] == CONTENT_ID and sfo['TITLE'] == TITLE
 assert sfo['APP_VER'] == sfo['VERSION'] == package_version()
 assert tuple(map(int, RELEASE.split('.'))) == tuple(map(int, sfo['APP_VER'].split('.')))
 _, _, sections = headers_and_sections(base/'psmtp.elf')

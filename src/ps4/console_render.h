@@ -33,6 +33,7 @@ typedef struct {
     const psmtp_metadata *(*metadata)(void *,size_t);void *metadata_user;
     const char *notice_title,*notice_text;
     int toolbar_focus,sort_mode,rename_allowed,can_create,install_percent,install_known,install_preparing;const char *edit_name,*edit_error;int keyboard_shift;
+    int keyboard_arabic;
 } psmtp_console_selection;
 enum { PSMTP_MENU_OPEN,PSMTP_MENU_NEW_FOLDER,PSMTP_MENU_COPY,PSMTP_MENU_MOVE,PSMTP_MENU_PASTE,PSMTP_MENU_RENAME,PSMTP_MENU_DELETE,PSMTP_MENU_PROPERTIES,PSMTP_MENU_EXIT,PSMTP_MENU_COUNT };
 enum { PSMTP_VIEW_HOME,PSMTP_VIEW_PHONE,PSMTP_VIEW_LOCAL,PSMTP_VIEW_TRANSFERS,PSMTP_VIEW_LOGS,PSMTP_VIEW_PICK,PSMTP_VIEW_INFO,PSMTP_VIEW_MENU,PSMTP_VIEW_LOADING,PSMTP_VIEW_OPERATION,PSMTP_VIEW_SETTINGS,PSMTP_VIEW_CONTROLS,PSMTP_VIEW_RENAME,PSMTP_VIEW_SORT,PSMTP_VIEW_NOTICE,PSMTP_VIEW_INSTALL_CONFIRM,PSMTP_VIEW_INSTALL_PROGRESS };

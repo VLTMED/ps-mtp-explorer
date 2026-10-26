@@ -3,10 +3,10 @@
 #include <string.h>
 #include <ctype.h>
 void psmtp_ui_size(char *out,size_t cap,uint64_t n) {
-    const char *units[]={"B","KB","MB","GB","TB","PB","EB"};
+    const char *units[]={"بايت","كيلوبايت","ميغابايت","غيغابايت","تيرابايت","بيتابايت","إكسابايت"};
     unsigned u=0; uint64_t divisor=1;
     while(u<6 && n/divisor>=1024) { divisor*=1024; ++u; }
-    if(!u) snprintf(out,cap,"%llu B",(unsigned long long)n);
+    if(!u) snprintf(out,cap,"%llu بايت",(unsigned long long)n);
     else {
         uint64_t whole=n/divisor,part=((n%divisor)*10)/divisor;
         if(part>9) part=9;

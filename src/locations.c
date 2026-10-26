@@ -1,6 +1,12 @@
 #include "psmtp/locations.h"
 #include <string.h>
 #include <stdio.h>
+#ifdef PSMTP_ARABIC_UI
+#include "psmtp/locale_ar.h"
+#define LOCATION_TEXT(text) psmtp_translate_text(text)
+#else
+#define LOCATION_TEXT(text) (text)
+#endif
 int psmtp_location_same(const psmtp_location *a,const psmtp_location *b) {
     return a->kind==b->kind && a->vendor_id==b->vendor_id && a->product_id==b->product_id &&
         (a->kind==PSMTP_LOCATION_PHONE && (a->connection || b->connection)?a->connection==b->connection:a->slot==b->slot);
@@ -12,7 +18,7 @@ void psmtp_locations_build(psmtp_locations *l,const psmtp_ps4_candidate *phones,
     for(i=0;i<n;++i) if(phones[i].mtp) {
         psmtp_location *e=&l->entries[l->count++];e->kind=PSMTP_LOCATION_PHONE;e->slot=(unsigned)i;
         e->vendor_id=phones[i].vendor_id;e->product_id=phones[i].product_id;e->connection=phones[i].connection;
-        snprintf(e->label,sizeof(e->label),"Phone %zu",++number);
+        snprintf(e->label,sizeof(e->label),LOCATION_TEXT("Phone %zu"),++number);
         if(phones[i].name[0]) {snprintf(e->label,sizeof(e->label),"%s",phones[i].name);e->named=1;}
     }
     for(i=0;i<PSMTP_USB_SLOTS;++i) if(usb&(1u<<i)) {

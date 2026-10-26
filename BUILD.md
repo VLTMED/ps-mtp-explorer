@@ -1,7 +1,10 @@
 # Build PS MTP Explorer
 
 The repository includes the source, libjbc integration, fonts, and artwork
-for version **1.01**, with title ID `NUEX00001` and PS4 SFO version `01.01`.
+for version **1.02**, with title ID `NUEX00001` and PS4 SFO version `01.02`.
+This build is an update to the existing application identity and includes an
+Arabic RTL interface, an Arabic/English on-screen keyboard, and localized
+status and error text.
 External compiler and SDK binaries are installed separately.
 
 ## Requirements
@@ -113,8 +116,12 @@ Test harnesses are not required by this target.
 
 ## Assets and notices
 
-Normal builds regenerate the embedded font from the bundled, hash-checked
-`assets/fonts/NotoSans-Light.ttf`. Artwork is already embedded in the
+Normal builds regenerate the embedded Latin and Arabic fonts from the bundled,
+hash-checked `assets/fonts/NotoSans-Light.ttf` and
+`assets/fonts/NotoSansArabic-Regular.ttf`. They also regenerate the embedded
+Arabic string table from `locales/ar.json` and statically compile the vendored
+FriBidi sources and Unicode tables in `third_party/fribidi/`; no Meson install
+or system FriBidi library is needed. Artwork is already embedded in the
 committed `src/ps4/reference_assets.inc`; no asset-generation step is needed.
 Editable SVGs and PNGs plus provenance remain in `assets/`.
 

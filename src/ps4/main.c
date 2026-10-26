@@ -30,6 +30,7 @@
 #include "psmtp/name.h"
 #include "psmtp/keyboard.h"
 #include "psmtp/ui_format.h"
+#include "psmtp/locale_ar.h"
 #include "package_install.h"
 #include "release_config.h"
 
@@ -78,7 +79,7 @@ static void draw_ui(const diag_log *log,size_t offset,const char *status,int nam
     visible.list_view=app.list_view;visible.drawer_settings=app.drawer_settings;
     visible.browser=app.phone_current;
     if(!visible.local && app.view==PSMTP_VIEW_LOCAL) visible.local=app.local_current;
-    if(app.clipboard_active) {snprintf(app.clipboard_label,sizeof(app.clipboard_label),"%s: %.255s",app.clipboard_cut?"Cut":"Copy",app.clipboard.name);visible.clipboard_label=app.clipboard_label;}
+    if(app.clipboard_active) {snprintf(app.clipboard_label,sizeof(app.clipboard_label),"%s: %.255s",psmtp_translate_text(app.clipboard_cut?"Cut":"Copy"),app.clipboard.name);visible.clipboard_label=app.clipboard_label;}
     visible.can_select=(app.phone_current && mtp_nav_selected(app.phone_current)) || (app.view==PSMTP_VIEW_LOCAL && app.local_current && app.local_current->count);
     visible.can_paste=paste_available();
     visible.can_create=app.phone_current || (app.view==PSMTP_VIEW_LOCAL && app.local_current && !app.local_current->error);
@@ -118,7 +119,7 @@ static void scan_log_begin(void) {
     saved_errno=errno;
     if(!app.scan_file) {
         app.scan_failed=1;
-        snprintf(app.scan_status,sizeof(app.scan_status),"UNAVAILABLE (errno=%d)",saved_errno);
+        snprintf(app.scan_status,sizeof(app.scan_status),psmtp_translate_text("UNAVAILABLE (errno=%d)"),saved_errno);
         fprintf(app.stream,"Scan log unavailable errno=%d; general log still attempted.\n",saved_errno);
         return;
     }
@@ -188,6 +189,7 @@ static void preview_quiet(void) {
 static uint32_t read_buttons(void) {
     uint32_t buttons=psmtp_screen_buttons();
     if(buttons)preview_quiet();
+    if(psmtp_locale_rtl()) {uint32_t left=buttons&ORBIS_PAD_BUTTON_LEFT,right=buttons&ORBIS_PAD_BUTTON_RIGHT;buttons&=~(ORBIS_PAD_BUTTON_LEFT|ORBIS_PAD_BUTTON_RIGHT);if(left)buttons|=ORBIS_PAD_BUTTON_RIGHT;if(right)buttons|=ORBIS_PAD_BUTTON_LEFT;}
     if(psmtp_screen_pad_error() && !app.pad_failure_reported) {
         app.pad_failure_reported=1;
         fprintf(app.stream,"stage=pad-read rc=0x%08" PRIx32 "; controller unavailable, use PS button to leave.\n",(uint32_t)psmtp_screen_pad_error());
@@ -501,31 +503,32 @@ done:
     }
     else if(!report.native_error && rc==MTP_NO_SPACE){install_notice("Insufficient storage space","Free space for both the full saved PKG\nand the installed content is required.\nSource PKG preserved.");strcpy(app.status,"Not enough PS4 storage for installation. Source PKG preserved.");}
     else {
-        if(report.native_error)snprintf(error,sizeof(error),"System installer error (0x%08x).\nCheck PS4 Notifications and available storage.",report.native_error);
-        else snprintf(error,sizeof(error),"Could not start installation:\n%s (app error %d).\nSource PKG preserved.",mtp_error_string(rc),rc);
+        if(report.native_error)snprintf(error,sizeof(error),psmtp_translate_text("System installer error (0x%08x).\nCheck PS4 Notifications and available storage."),report.native_error);
+        else snprintf(error,sizeof(error),psmtp_translate_text("Could not start installation:\n%s (app error %d).\nSource PKG preserved."),psmtp_translate_text(mtp_error_string(rc)),rc);
         install_notice("Installation unavailable",error);strcpy(app.status,"Installation unavailable. Source PKG preserved.");
     }
     fprintf(app.stream,"stage=install-selection status=%d native=0x%08x original-source-removed=0 cleanup-warning=%d\n",rc,report.native_error,cleanup_rc);app.copying=0;copy_checkpoint();(void)psmtp_screen_buttons();return rc;
 }
 static void edit_selection_name(int creating) {
-    psmtp_op_ref source;psmtp_console_selection s={0};char name[256],result[256],error[128]="";int rc,shift=0;size_t cursor=0;
+    psmtp_op_ref source;psmtp_console_selection s={0};char name[256],result[256],error[128]="";int rc,shift=0,arabic=1;size_t cursor=0;
     preview_quiet();memset(&source,0,sizeof(source));rc=creating?0:capture_selection(&source);if(rc){strcpy(app.status,"Select an item to rename.");return;}
     snprintf(name,sizeof(name),"%s",creating?"New Folder":source.name);s.view=PSMTP_VIEW_RENAME;s.action=creating?4:0;(void)psmtp_screen_buttons();
-    for(;;){uint32_t buttons;size_t n=strlen(name);s.edit_name=name;s.edit_error=error;s.index=cursor;s.keyboard_shift=shift;
+    for(;;){uint32_t buttons;size_t n=strlen(name);s.edit_name=name;s.edit_error=error;s.index=cursor;s.keyboard_shift=shift;s.keyboard_arabic=arabic;
         draw_ui(&app.ring,0,creating?"New Folder":"Rename",1,app.scan_status,&s,NULL);if(psmtp_screen_error() || !psmtp_screen_pad_ready())break;
         buttons=read_buttons();if(buttons&ORBIS_PAD_BUTTON_CIRCLE)break;
         if(buttons&ORBIS_PAD_BUTTON_UP)cursor=psmtp_key_move(cursor,0,-1);
         if(buttons&ORBIS_PAD_BUTTON_DOWN)cursor=psmtp_key_move(cursor,0,1);
         if(buttons&ORBIS_PAD_BUTTON_LEFT)cursor=psmtp_key_move(cursor,-1,0);
         if(buttons&ORBIS_PAD_BUTTON_RIGHT)cursor=psmtp_key_move(cursor,1,0);
+        if(buttons&ORBIS_PAD_BUTTON_L2){arabic=!arabic;shift=0;}
         if(buttons&ORBIS_PAD_BUTTON_TRIANGLE)shift=!shift;
         if(buttons&ORBIS_PAD_BUTTON_L1){name[0]=0;n=0;}
-        if(buttons&ORBIS_PAD_BUTTON_CROSS){int action=psmtp_key_action(cursor);char c=psmtp_key_character(cursor,shift);
+        if(buttons&ORBIS_PAD_BUTTON_CROSS){int action=psmtp_key_action(cursor);const char *key_text=psmtp_key_text(cursor,shift,arabic);size_t add=strlen(key_text);
             if(action==PSMTP_KEY_SHIFT)shift=!shift;
             else if(action==PSMTP_KEY_CLEAR){name[0]=0;n=0;}
             else if(action==PSMTP_KEY_SAVE)buttons|=ORBIS_PAD_BUTTON_R1;
             else if(action==PSMTP_KEY_BACKSPACE)buttons|=ORBIS_PAD_BUTTON_SQUARE;
-            else if(c && n<255){name[n++]=c;name[n]=0;}
+            else if(add && n+add<sizeof(name)){memcpy(name+n,key_text,add);n+=add;name[n]=0;}
         }
         if((buttons&ORBIS_PAD_BUTTON_SQUARE) && n){do{--n;}while(n && ((unsigned char)name[n]&0xc0)==0x80);name[n]=0;}
         if(buttons&ORBIS_PAD_BUTTON_R1){if(!psmtp_name_valid(name)){strcpy(error,"Enter a valid name. Keep the file extension if needed.");continue;}
@@ -537,7 +540,7 @@ static void edit_selection_name(int creating) {
             }
             rc=psmtp_op_rename(&source,app.phone_current?app.phone_current->client:NULL,name,result,app.stream);
             if(rc && result[0]){refresh_folder();strcpy(app.status,"Renamed, but the final check failed. Refresh before retrying.");break;}
-            if(rc){snprintf(error,sizeof(error),"Rename failed (%d). Name exists, storage is read-only, or device rejected it.",rc);if(app.phone_current && app.phone_current->client->poisoned){strcpy(app.status,"Rename interrupted. Refresh and check the name before retrying.");break;}continue;}
+            if(rc){snprintf(error,sizeof(error),psmtp_translate_text("Rename failed (%d). Name exists, storage is read-only, or device rejected it."),rc);if(app.phone_current && app.phone_current->client->poisoned){strcpy(app.status,"Rename interrupted. Refresh and check the name before retrying.");break;}continue;}
             psmtp_preview_invalidate();if(app.clipboard_active)app.clipboard_active=0;
             refresh_folder();strcpy(app.status,"Renamed successfully.");break;
         }sceKernelUsleep(1000);
@@ -599,16 +602,16 @@ static void run_operation(const psmtp_op_ref *source,mtp_client *client,int acti
     }
     if(plan->uncertain_upload)strcpy(app.status,"Phone upload interrupted; a partial file may remain. Reconnect and inspect the destination before retrying.");
     else if(plan->uncertain_delete) strcpy(app.status,"Phone deletion interrupted; source state is uncertain. Check both devices before retrying.");
-    else if(rc==MTP_CANCELLED) snprintf(app.status,sizeof(app.status),"Cancelled: %zu files copied, %zu source items removed.",plan->copied,plan->removed);
+    else if(rc==MTP_CANCELLED) snprintf(app.status,sizeof(app.status),psmtp_translate_text("Cancelled: %zu files copied, %zu source items removed."),plan->copied,plan->removed);
     else if(rc==MTP_NO_SPACE)strcpy(app.status,"Insufficient storage space. Transfer stopped; source items are preserved.");
     else if(rc==MTP_EXISTS)strcpy(app.status,"An item with this name already exists. Rename the source or choose another folder.");
     else if(rc==MTP_UNSUPPORTED)strcpy(app.status,"This device is read-only or does not support the selected operation.");
     else if(rc==MTP_LIMIT)strcpy(app.status,"Selection exceeds supported transfer limits. Choose a smaller file or folder.");
     else if(rc==MTP_SPACE_UNKNOWN)strcpy(app.status,"Available storage could not be checked. Transfer blocked.");
-    else if(rc==MTP_FILESYSTEM && plan->error_stage)snprintf(app.status,sizeof(app.status),"Destination access failed (error %d). Check storage access.",plan->error_number);
-    else if(rc) snprintf(app.status,sizeof(app.status),"Operation stopped (%d): %zu files copied, %zu items removed.",rc,plan->copied,plan->removed);
-    else if(action==2) snprintf(app.status,sizeof(app.status),"Deleted %zu selected items.",plan->removed);
-    else snprintf(app.status,sizeof(app.status),action==1?"Move verified: %zu files copied, %zu source items removed.":"Paste complete: %zu files copied and verified.",plan->copied,plan->removed);
+    else if(rc==MTP_FILESYSTEM && plan->error_stage)snprintf(app.status,sizeof(app.status),psmtp_translate_text("Destination access failed (error %d). Check storage access."),plan->error_number);
+    else if(rc) snprintf(app.status,sizeof(app.status),psmtp_translate_text("Operation stopped (%d): %zu files copied, %zu items removed."),rc,plan->copied,plan->removed);
+    else if(action==2) snprintf(app.status,sizeof(app.status),psmtp_translate_text("Deleted %zu selected items."),plan->removed);
+    else snprintf(app.status,sizeof(app.status),psmtp_translate_text(action==1?"Move verified: %zu files copied, %zu source items removed.":"Paste complete: %zu files copied and verified."),plan->copied,plan->removed);
     if(plan->cleanup_failed && !rc) strcpy(app.status,"Operation completed. Some temporary files could not be removed.");
     if((action==1 && (!rc || plan->removed || plan->uncertain_delete)) || action==2) app.clipboard_active=0;
     if(client && app.retained_phone && client==app.retained_phone->client && (plan->removed || plan->uncertain_delete || plan->destination_location.kind==PSMTP_LOCATION_PHONE)) app.phone_dirty=1;
@@ -623,7 +626,7 @@ static void file_action(size_t action) {
     psmtp_op_ref source;int rc;
     if(action==4) {app.clipboard_active=0;strcpy(app.status,"Clipboard cleared.");return;}
     if(action==0 || action==1) {
-        rc=capture_selection(&source);if(rc) {snprintf(app.status,sizeof(app.status),"Could not select this item (%d).",rc);return;}
+        rc=capture_selection(&source);if(rc) {snprintf(app.status,sizeof(app.status),psmtp_translate_text("Could not select this item (%d)."),rc);return;}
         app.clipboard=source;app.clipboard_active=1;app.clipboard_cut=action==1;
         strcpy(app.status,action==1?"Cut selected. Browse to a destination and choose Paste here.":"Copied selection to clipboard. Browse to a destination and choose Paste here.");return;
     }
@@ -662,7 +665,7 @@ static int browse(void *unused,mtp_client *client,FILE *out) {
         app.target=app.paste_location;strcpy(app.resume_path,app.paste_path);app.paste_pending=0;app.switch_requested=1;goto done;
     }
     if(app.locations.count) {snprintf(app.locations.entries[app.locations.active].label,sizeof(app.locations.entries[0].label),"%.95s",nav->device_name);app.locations.entries[app.locations.active].named=2;}
-    strcpy(app.status,"X opens folders or reviews files. Options has Copy and Delete. Left switches devices.");copy_checkpoint();
+    strcpy(app.status,"X opens folders or reviews files. Options has Copy and Delete. Right switches devices.");copy_checkpoint();
     (void)psmtp_screen_buttons();
     for(;;) {
         const mtp_nav_entry *entry;int handled;
@@ -720,7 +723,7 @@ static int browse(void *unused,mtp_client *client,FILE *out) {
             else if(buttons&ORBIS_PAD_BUTTON_R2) rc=nav->storage_index+1<nav->storage_count?mtp_nav_storage(nav,nav->storage_index+1):0;
             else rc=mtp_nav_refresh(nav);
             if(rc) break;
-            strcpy(app.status,"X opens folders or reviews files. Options has Copy and Delete. Left switches devices.");copy_checkpoint();
+            strcpy(app.status,"X opens folders or reviews files. Options has Copy and Delete. Right switches devices.");copy_checkpoint();
         }
         sceKernelUsleep(1000);
     }
@@ -746,7 +749,8 @@ static void activate_local(psmtp_local_browser *local) {
     app.resume_path[0]=0;psmtp_local_sort(local,app.sort_mode);app.toolbar_focus=0;
     local_result(rc,local);
     if(app.paste_path[0] && !app.paste_pending) {app.paste_path[0]=0;return;}
-    snprintf(app.status,sizeof(app.status),rc?"Could not open device (error %d). Reconnect and retry.":"X opens folders and file details. Left switches devices.",local->error);
+    if(rc)snprintf(app.status,sizeof(app.status),psmtp_translate_text("Could not open device (error %d). Reconnect and retry."),local->error);
+    else strcpy(app.status,"X opens folders and file details. Right switches devices.");
 }
 static void local_step(psmtp_local_browser *local,uint32_t buttons) {
     int rc;size_t stride=app.list_view?1:4,page=app.list_view?16:12;size_t step=buttons&ORBIS_PAD_BUTTON_L1?page:buttons&ORBIS_PAD_BUTTON_LEFT?1:stride;
@@ -761,8 +765,8 @@ static void local_step(psmtp_local_browser *local,uint32_t buttons) {
     if((buttons&ORBIS_PAD_BUTTON_CROSS) && local->count) {
         if(local->entries[local->selected].folder) {
             rc=psmtp_local_enter(local);local_result(rc,local);
-            if(rc) snprintf(app.status,sizeof(app.status),"Folder error %d at %s. Touchpad retries; Circle returns.",local->error,local->error_stage?local->error_stage:"unknown");
-            else strcpy(app.status,"Left switches devices. Circle goes back.");
+            if(rc) snprintf(app.status,sizeof(app.status),psmtp_translate_text("Folder error %d at %s. Touchpad retries; Circle returns."),local->error,psmtp_translate_text(local->error_stage?local->error_stage:"unknown"));
+            else strcpy(app.status,"Right switches devices. Circle goes back.");
         }
         else if(psmtp_pkg_name(local->entries[local->selected].name))(void)install_selection();
         else properties();
